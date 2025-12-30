@@ -77,6 +77,28 @@ $$\|\mathbf{x}\|_p = \left( \sum_\{i=1}^n |x_i|^p \right)^{1/p}, \quad p>0$$
     * **定义**：将 Logits 压缩到 $(0, 1)$ 之间，并确保所有类别的输出之和为 1，从而转化为**概率分布**。
     * **公式**：$p_m = \frac{e^{h_m}}{\sum e^{h_i}}$。
     * *作用*：让神经网络的输出可以被解释为“属于某一类的概率”。
+* **Argmax function（argmax 运算）**
+    * **定义**：在一组数或一个函数中，**找到使得取值最大的那个“位置/输入”**，而不是最大值本身。
+    * **公式**：
+      - 对向量：$\(\displaystyle \operatorname*{arg\,max}_i z_i\)$，表示使 $\(z_i\)$ 最大的那个索引 $\(i\)$。
+      - 对函数：$\(\displaystyle \operatorname*{arg\,max}_x f(x)\)$，表示使 $\(f(x)\)$ 最大的那个 $\(x\)$。
+    * **作用**：
+      - 在分类问题中：对每一类的得分（或 softmax 概率）做 argmax，**选出概率最大的那一类**作为预测结果。
+      - 在数学/优化中：常用来表示“**最优解的位置**”，例如 $\(\theta^\* = \operatorname*{arg\,max}_\theta L(\theta)\)$。
+* **Argmin function（argmin 运算）**
+    * **定义**：在一组数或一个函数中，**找到使得取值最小的那个“位置/输入”**，而不是最小值本身。
+    * **公式**：
+      - 对向量：$\(\displaystyle \operatorname*{arg\,min}_i z_i\)$，表示使 $\(z_i\)$ 最小的那个索引 \(i\)。
+      - 对函数：$\(\displaystyle \operatorname*{arg\,min}_x f(x)\)$，表示使 $\(f(x)\)$ 最小的那个 \(x\)。
+    * **作用**：
+      - 在机器学习中：训练时经常写成  
+      $$\(\displaystyle \theta^\* = \operatorname*{arg\,min}_\theta \mathcal{L}(\theta)\)$$，  
+      表示“**找到让损失函数最小的参数**”。
+      - 在优化问题中，用来表示“**最小值所在的位置/解**”，和 argmax 类似，只是方向相反。
+    * **词源**：
+      - **arg** 是 *argument*（自变量/输入）的缩写，  
+        因此 **argmin/argmax** 分别表示“使函数取得最小值/最大值的那个自变量”。
+
 
 ---
 
