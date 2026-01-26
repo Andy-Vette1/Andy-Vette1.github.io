@@ -1,4 +1,4 @@
-# Week 01 笔记：机器学习与数学基础回顾
+# Week 01 机器学习与数学基础回顾
 
 本笔记基于 FIT3181/5215 课程 Week 01 内容整理。
 
@@ -239,7 +239,7 @@ $$\mathrm{CE}(p, q) = -\sum_{i=1}^d p_i \log q_i$$
 
 > **补充：逻辑回归 vs 前向传播**
 > * **逻辑回归**是一个具体的**模型** (Model)。
-> * **前向传播 (Feed-forward)** 是数据流动的**过程** (Process)。逻辑回归的计算过程（输入 -> 加权求和 -> 激活 -> 输出）就是一次简单的前向传播。
+> * **前向传播 (Forward Propagation)** 是数据流动的**过程** (Process)。逻辑回归的计算过程（输入 -> 加权求和 -> 激活 -> 输出）就是一次简单的前向传播。
 
 #### 训练与优化
 * **训练目标**：最小化所有样本的平均交叉熵损失。
@@ -300,3 +300,15 @@ Logits 是实数值 $(-\infty, +\infty)$，为了进行概率解释，我们需�
 3.  **计算损失**：使用交叉熵计算当前 Batch 的平均损失。
 4.  **参数更新**：使用优化器（如 **SGD**, **Adam**, **RMSprop**）来调整参数 $W$ 和 $b$。
 5.  **测试**：在测试集上评估模型的准确率。
+
+# Week 02 Numpy & pytorch
+# Week 03 前馈神经网络
+# Week 04 反向传播
+# Week 05 卷积神经网络
+# Week 06 实用技能
+# Week 07 高级神经网络
+# Week 08 循环神经网络
+# Week 09 Transformer
+# Week 10 ViT & 微调技巧
+# Week 11 Deep Generative Models
+# Week 12 Word Embedding with word2vec
