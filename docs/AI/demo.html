@@ -106,6 +106,14 @@
             flex-direction: column;
             z-index: 999;
         }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            image-rendering: pixelated;
+            touch-action: none;
+            /* <--- 关键！禁止触摸时的默认滚动行为 */
+        }
     </style>
 </head>
 
@@ -238,7 +246,7 @@
             el.scrollTop = el.scrollHeight;
         }
 
-        // === 3. 画布交互 (跟之前一样) ===
+        // === 3. 画布交互 (兼容手机触摸 & 电脑鼠标) ===
         function initCanvas() {
             if (isBlackOnWhite) {
                 ctx.fillStyle = 'white'; ctx.fillRect(0, 0, 28, 28); ctx.strokeStyle = 'black';
@@ -247,24 +255,74 @@
                 ctx.fillStyle = 'black'; ctx.fillRect(0, 0, 28, 28); ctx.strokeStyle = 'white';
                 document.getElementById('modeBtn').innerText = "Mode: MNIST (W/B)";
             }
-            ctx.lineWidth = 1.5; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+            // 手机屏幕像素密度高，线条可以稍微粗一点点
+            ctx.lineWidth = 1.5;
+            ctx.lineCap = 'round';
+            ctx.lineJoin = 'round';
         }
 
+        // 统一获取坐标的函数 (核心修改)
         function getPos(e) {
             const rect = canvas.getBoundingClientRect();
+            let clientX, clientY;
+
+            // 判断是触摸事件还是鼠标事件
+            if (e.touches && e.touches.length > 0) {
+                // 触摸事件: 取第一根手指的坐标
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                // 鼠标事件
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+
+            // 计算在 28x28 画布上的相对坐标
             return {
-                x: (e.clientX - rect.left) * (canvas.width / rect.width),
-                y: (e.clientY - rect.top) * (canvas.height / rect.height)
+                x: (clientX - rect.left) * (canvas.width / rect.width),
+                y: (clientY - rect.top) * (canvas.height / rect.height)
             };
         }
 
-        canvas.addEventListener('mousedown', (e) => { isDrawing = true; ctx.beginPath(); ctx.moveTo(getPos(e).x, getPos(e).y); });
-        canvas.addEventListener('mousemove', (e) => { if (!isDrawing) return; ctx.lineTo(getPos(e).x, getPos(e).y); ctx.stroke(); });
+        // 开始绘画
+        function startPosition(e) {
+            e.preventDefault(); // 防止手机端可能的滚动
+            isDrawing = true;
+            const pos = getPos(e);
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+        }
 
-        // 鼠标松开时触发推理
-        canvas.addEventListener('mouseup', () => { isDrawing = false; runInference(); });
-        canvas.addEventListener('mouseleave', () => { if (isDrawing) { isDrawing = false; runInference(); } });
+        // 绘画进行中
+        function draw(e) {
+            if (!isDrawing) return;
+            e.preventDefault(); // 防止滚动
+            const pos = getPos(e);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+        }
 
+        // 结束绘画
+        function finishedPosition() {
+            if (isDrawing) {
+                isDrawing = false;
+                ctx.beginPath(); // 结束路径，防止连笔
+                runInference();  // 触发 AI 预测
+            }
+        }
+
+        // --- 绑定事件监听器 (鼠标) ---
+        canvas.addEventListener('mousedown', startPosition);
+        canvas.addEventListener('mousemove', draw);
+        canvas.addEventListener('mouseup', finishedPosition);
+        canvas.addEventListener('mouseleave', finishedPosition);
+
+        // --- 绑定事件监听器 (触摸屏 - 新增) ---
+        canvas.addEventListener('touchstart', startPosition, { passive: false });
+        canvas.addEventListener('touchmove', draw, { passive: false });
+        canvas.addEventListener('touchend', finishedPosition);
+
+        // --- 辅助功能 ---
         function clearCanvas() {
             initCanvas();
             document.getElementById('predResult').innerText = "?";
