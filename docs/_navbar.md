@@ -5,6 +5,7 @@
 <!-- - [Logical Thinking](LogicalThinking.md) -->
 - Programming Knowledge
   - [Algorithm](programming/Algorithms.md)
+  - [AI](AI/demo.md)
   - [Design Prinsples](DesignPrinciples.md)
   - [Linux](https://dunwu.github.io/linux-tutorial/)
   - [Java](Java.md)
