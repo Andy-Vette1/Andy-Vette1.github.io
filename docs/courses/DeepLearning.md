@@ -301,10 +301,243 @@ Logits 是实数值 $(-\infty, +\infty)$，为了进行概率解释，我们需�
 4.  **参数更新**：使用优化器（如 **SGD**, **Adam**, **RMSprop**）来调整参数 $W$ 和 $b$。
 5.  **测试**：在测试集上评估模型的准确率。
 
-# Week 02 Numpy & pytorch
+# Week 02 NumPy & PyTorch
+
+## 一、NumPy 基础 (NumPy Fundamentals)
+
+### 0. 为什么深度学习需要 NumPy？(Why NumPy?)
+**核心逻辑**：Python 原生的 List 虽然灵活，但在处理大规模数值计算时**太慢了**。
+* **高效存储**：Python List 存储的是对象的引用（指针），而 NumPy 的数组（`ndarray`）在内存中是**连续存储**的，且数据类型固定（如全是 `float32`），这极大地节省了内存。
+* **并行计算**：NumPy 底层由 C 语言编写，解除了 Python 的 GIL 限制，能够利用现代 CPU 的 SIMD 指令集进行**向量化计算** (Vectorization)。
+* **生态基石**：它是 PyTorch、TensorFlow、Pandas 等所有 AI 框架的底层数据容器标准。
+
+### 1. 核心对象：多维数组 (ndarray)
+NumPy 的核心是 $N$ 维数组对象 `numpy.ndarray`。
+一个形状为 $(m, n)$ 的矩阵可以表示为：$A \in \mathbb{R}^{m \times n}$。
+
+**核心属性** (Attributes)：
+* **`.ndim`（维度数）**：轴 (Axis) 的数量。
+    * *例子*：向量 `[1, 2, 3]` 的 ndim 为 1；矩阵 `[[1, 2], [3, 4]]` 的 ndim 为 2。
+* **`.shape`（形状）**：描述各维度大小的元组 (Tuple)。
+    * *例子*：一张 $28 \times 28$ 的彩色图片，shape 为 $(28, 28, 3)$。
+* **`.dtype`（数据类型）**：数组中元素的类型。
+    * **重点**：深度学习中通常使用 `float32`（单精度浮点数）而非 Python 默认的 `float64`，因为 `float32` 占用的显存减半，且计算速度更快。
+
+```python
+import numpy as np
+
+# 创建时指定 float32，适合神经网络权重
+arr = np.array([[1, 2, 3], [4, 5, 6]], dtype=np.float32)
+
+print(f"维度 (ndim): {arr.ndim}")     # Output: 2
+print(f"形状 (shape): {arr.shape}")    # Output: (2, 3)
+print(f"类型 (dtype): {arr.dtype}")    # Output: float32
+```
+### 2\. 向量化与广播 (Vectorization & Broadcasting) \[重点\]
+
+#### 2.1 向量化运算 (Vectorization)
+
+**定义**：指在数组上直接进行数学运算，而**无需编写显式的 `for` 循环**。
+
+-   **标量运算**：A+c 表示矩阵 A 的每个元素都加 c。
+    
+-   **逐元素运算** (Element-wise)：A+B 表示对应位置元素相加（要求 A,B 形状相同）。
+    
+
+#### 2.2 广播机制 (Broadcasting)
+
+**定义**：NumPy 处理**不同形状**数组之间运算的一种机制。较小的数组会被自动“拉伸”以匹配较大数组的形状。
+
+**广播规则 （The General Broadcasting Rules）**：
+
+1.  **对齐**：将两个数组的 shape 靠右对齐。
+    
+2.  **扩展**：从右向左看，如果两个维度的数值**相等**，或者其中一个**为 1**，则可以广播。
+    
+3.  **拉伸**：维度为 1 的那个轴会被“复制拉伸”，直到和另一个数组一样大。
+    
+
+> **💡 通俗理解：广播机制** 想象你在切吐司面包。
+> 
+> -   **矩阵 (Matrix)** 是那条长长的吐司面包（数据块）。
+>     
+> -   **向量 (Vector)** 是一片黄油。
+>     
+> -   **运算**：你想给每一片面包都涂上黄油。
+>     
+> -   **广播的作用**：虽然黄油只有“一片”（维度少），但 NumPy 会自动把这片黄油**复制**成整条面包那么长，然后一次性贴上去。
+>     
+> -   _例子_：也就是 `(100, 3)` 的数据矩阵加上 `(3,)` 的偏置向量，偏置向量会自动变成 `(100, 3)` 参与运算。
+>     
+
+```Python
+    # 广播实例
+    matrix = np.array([[1, 2, 3], 
+                       [4, 5, 6]])   # Shape: (2, 3)
+    bias   = np.array([10, 20, 30])  # Shape: (3,) -> 自动广播为 (2, 3)
+    
+    print(matrix + bias) 
+    # [[11, 22, 33],
+    #  [14, 25, 36]]
+```
+
+---
+
+## 二、数据操作与索引 (Manipulation & Indexing)
+
+### 1\. 高级索引与切片 (Indexing & Slicing)
+
+语法通式：`arr[行操作, 列操作]`。
+
+-   **基础切片**：`arr[start:end]`，遵循“左闭右开”原则。
+    
+-   **布尔掩码 （Boolean Masking）**：
+    
+    -   **定义**：利用条件表达式生成一个 `True/False` 的矩阵，作为索引来筛选数据。
+        
+    -   **场景**：在数据预处理中清洗异常值（如去掉负数）。
+        
+
+```Python
+
+    scores = np.array([58, 95, 65, 88, 59])
+    
+    # 1. 生成掩码 (Mask): [False, True, True, True, False]
+    mask = scores >= 60 
+    
+    # 2. 应用掩码
+    passed = scores[mask]  # [95, 65, 88]
+    
+    # 3. 极速修改：将不及格改为 0 分
+    scores[scores < 60] = 0 
+```
+
+### 2\. 维度变换 (Shape Manipulation)
+
+深度学习中，经常需要改变数据的维度（如把图片拉平送入全连接层）。
+
+-   **Reshape**：`arr.reshape(new_shape)`。注意元素总数必须不变。
+    
+-   **Flatten**：`arr.flatten()` 将多维数组拉平成一维向量。
+    
+-   **Transpose**：`arr.T` 或 `arr.transpose()` 进行转置。
+    
+---
+
+## 三、统计分析 (Statistics & Dimensions)
+
+### 1\. 理解 Axis (轴)
+
+这是一个让初学者最头疼的概念。
+
+-   `axis=0`：**沿着第 0 轴操作**（对于 2D 矩阵，是沿着“行”往下压）。→ **保留列的特征**。
+    
+-   `axis=1`：**沿着第 1 轴操作**（对于 2D 矩阵，是沿着“列”往右压）。→ **保留行的特征**。
+    
+
+> **💡 通俗理解：Axis 的方向**
+> 
+> -   **axis=0 （垮塌法）**：想象天花板掉下来了，把多层楼压成了一层地基。对于矩阵，就是把所有行**压扁**，最后只剩下一行（实际上是得到每一列的统计值）。
+>     
+> -   **axis=1 （侧压法）**：想象两边的墙壁往中间挤，把房间压成了一条线。对于矩阵，就是把每一行内部的数**挤压**在一起（得到每一行的统计值）。
+>     
+
+### 2\. 常用统计函数
+
+-   **聚合类**：`sum`, `mean`, `max`, `min`, `std` (标准差)。
+    
+-   **索引类**：
+    
+    -   `np.argmax(arr, axis=...)`：返回最大值的**索引位置**。
+        
+    -   _应用_：在分类任务中，Softmax 输出一个概率向量 `[0.1, 0.7, 0.2]`，`argmax` 告诉我们是第 **1** 类（索引从0开始）概率最大。
+        
+
+```Python
+
+    data = np.array([[10, 20, 30], 
+                     [50, 10, 10]]) # Shape: (2, 3)
+    
+    # 场景：这是一个 batch_size=2 的 3分类预测结果
+    
+    # axis=1: 找出每个样本预测概率最大的类别
+    pred_classes = np.argmax(data, axis=1) 
+    print(pred_classes) # Output: [2, 0] -> 第1个样本选类别2，第2个样本选类别0
+```
+
+#### Keepdims 技巧
+
+-   **用法**：`np.sum(arr, axis=1, keepdims=True)`
+    
+-   **作用**：计算后保持维度数量不变。结果形状从 `(m,)` 变为 `(m, 1)`。
+    
+-   **目的**：为了后续能直接利用**广播机制**进行运算（例如 `x - mean`）。
+
+---
+
+## 四、随机数与复现 (Randomness)
+
+在深度学习中，随机数主要用于 **权重初始化** (Weight Initialization) 和 **数据打乱** (Shuffling)。
+
+| 函数  | 数学含义 | 典型应用场景 |
+| --- | --- | --- |
+| **`np.random.seed(42)`** | **固定种子** | **可复现性** (Reproducibility)。确保每次跑代码结果一致。 |
+| `np.random.randn(d0, d1)` | **标准正态分布** N(0,1) | 神经网络**权重初始化**。 |
+| `np.random.rand(d0, d1)` | **均匀分布** U\\[0,1) | Dropout 掩码生成、数据增强。 |
+| `np.random.shuffle(arr)` | **随机打乱** | 每个 Epoch 开始前打乱训练数据。 |
+| `np.random.randint(low, high)` | **离散均匀分布** | 随机采样索引。 |
+
+
+```Python
+
+    # 实验复现的标准起手式
+    np.random.seed(2024)
+    
+    # 生成模拟权重 (2x3)
+    W = np.random.randn(2, 3)
+```
+
+
+## pytorch
+
 # Week 03 前馈神经网络
-# Week 04 反向传播
+
+## 感知机（Perceptron）
+
+## 前馈神经网络 (FFN) 的结构
+
+### 核心组件-激活函数
+
+### 线行层 & Softmax层
+
+## 计算图（Computational Graph）
+
+# Week 04 反向传播与优化
+
+## 数学基础
+
+## 反向传播的推导
+
+## 优化的难点
+
+## 优化算法
+
 # Week 05 卷积神经网络
+
+## 计算机如何识别图像
+
+## CNN核心组件
+
+### 卷积层
+
+### 池化层
+
+### 全链接层
+
+## 优化训练的技巧
+
+## 经典的CNN架构
+
 # Week 06 实用技能
 # Week 07 高级神经网络
 # Week 08 循环神经网络
