@@ -559,21 +559,21 @@ print(f"类型 (dtype): {arr.dtype}")    # Output: float32
 
 -   **FFN vs. FNN vs. MLP？**
     
-    -   **FFN (Feed-Forward Network)** 或 **FNN (Feed-forward Neural Network)**：指**数据单向流动**（Input → Output）、无反馈环路的一类网络。这是最广泛的统称。
+    -   **FFN （Feed-Forward Network）** 或 **FNN （Feed-forward Neural Network）**：指**数据单向流动**（Input → Output）、无反馈环路的一类网络。这是最广泛的统称。
         
-    -   **MLP (Multi-Layer Perceptron, 多层感知机)**：这是历史遗留的经典叫法。在现代语境下，**MLP ≈ FFN ≈ 全连接网络**。
+    -   **MLP （Multi-Layer Perceptron, 多层感知机）**：这是历史遗留的经典叫法。在现代语境下，**MLP ≈ FFN ≈ 全连接网络**。
         
-    -   **什么是“前馈” (Feed-forward)**：指信号只向一个方向传播，**不走回头路**。如果有回路（输出反馈给输入），那是**循环神经网络 (RNN)**。
+    -   **什么是“前馈” （Feed-forward）**：指信号只向一个方向传播，**不走回头路**。如果有回路（输出反馈给输入），那是**循环神经网络 （RNN）**。
         
 -   **神经网络的“层数”怎么数？**
     
-    -   **规则**：**不计算输入层 (Input Layer)**，只算有参数的层。
+    -   **规则**：**不计算输入层 （Input Layer）**，只算有参数的层。
         
     -   **公式**：总层数\=隐藏层数量+输出层 (1)。
         
     -   _例子_：一个“2层神经网络”指的是 1 个隐藏层 + 1 个输出层。
         
--   **什么是“参数化” (Parameterization)？**
+-   **什么是“参数化” （Parameterization）？**
     
     -   **定义**：将一个抽象的数学映射问题，转化为寻找一组具体的**数值参数** θ\={W,b} 的过程。
         
@@ -584,30 +584,44 @@ print(f"类型 (dtype): {arr.dtype}")    # Output: float32
 
 前馈神经网络 (FFN) 是最基础的深度模型，信息单向流动（Input → Output），无反馈环路。
 
--   **输入层 (Input Layer)**：接收原始数据向量 x∈Rd。
+-   **输入层 （Input Layer）**：接收原始数据向量 x∈Rd。
     
--   **隐藏层 (Hidden Layers)**：中间的“黑盒”层，负责提取特征。
+-   **隐藏层 （Hidden Layers）**：中间的“黑盒”层，负责提取特征。
     
--   **输出层 (Output Layer)**：输出最终预测结果（如分类概率）。
+-   **输出层 （Output Layer）**：输出最终预测结果（如分类概率）。
     
 
-> **参数化 (Parameterization)**： 若第 k 层有 nk​ 个神经元，则该层的参数包括：
-> 
-> -   **权重矩阵**：Wk​∈Rnk−1​×nk​
->     
-> -   **偏置向量**：bk​∈R1×nk​
+> **参数化（Parameterization）**：若第 $k$ 层有 $n_k$ 个神经元，则该层参数为：
 >
+> - **权重矩阵**：$\mathbf{W}^{(k)} \in \mathbb{R}^{\,n_{k-1}\times n_k}$
+> - **偏置向量**：$\mathbf{b}^{(k)} \in \mathbb{R}^{\,1\times n_k}$
 
+### 2. 前向传播（Forward Propagation）
 
-### 2\. 前向传播 (Forward Propagation)
+数据在网络中流动的过程，本质是 **“线性变换 + 非线性激活”** 的堆叠。对第 $k$ 层（有 $n_k$ 个神经元）：
 
-数据在网络中流动的过程，本质上是 **“线性变换 + 非线性激活”** 的堆叠。 对于第 k 层（拥有 nk​ 个神经元）：
+1. **线性变换（Linear Transform）**  
+   $$\mathbf{a}^{(k)} = \mathbf{h}^{(k-1)}\mathbf{W}^{(k)} + \mathbf{b}^{(k)}$$     
+    - **$k$（层索引）**：表示第 $k$ 层（layer index）。
+    - **$\mathbf{h}^{(k-1)}$（上一层输出）**：第 $k-1$ 层的输出（经过激活函数后的值）。
+      - 单样本（row vector）：$\mathbf{h}^{(k-1)}\in \mathbb{R}^{1\times n_{k-1}}$
+      - 批量（batch）：$\mathbf{H}^{(k-1)}\in \mathbb{R}^{B\times n_{k-1}}$
+    - **$\mathbf{W}^{(k)}$（权重矩阵）**：从第 $k-1$ 层到第 $k$ 层的连接参数，控制输入特征对每个神经元的影响强度。
+      - 维度：$\mathbf{W}^{(k)}\in \mathbb{R}^{n_{k-1}\times n_k}$
+    - **$\mathbf{b}^{(k)}$（偏置向量）**：第 $k$ 层每个神经元对应一个偏置，用于平移线性组合结果。
+      - 维度：$\mathbf{b}^{(k)}\in \mathbb{R}^{1\times n_k}$（批量时通常会 broadcast 到 $\mathbb{R}^{B\times n_k}$）
+    - **$\mathbf{a}^{(k)}$（预激活值）**：第 $k$ 层激活函数之前的线性输出（pre-activation / affine output）。
+      - 单样本：$\mathbf{a}^{(k)}\in \mathbb{R}^{1\times n_k}$
+      - 批量：$\mathbf{A}^{(k)}\in \mathbb{R}^{B\times n_k}$
 
-1.  **线性聚合**：hpre​\=hk−1​Wk​+bk​
-    
-    -   参数 Wk​∈Rnk−1​×nk​，偏置 bk​∈R1×nk​。
-        
-2.  **非线性激活**：hk​\=σ(hpre​)
+    - **运算含义**
+      - $\mathbf{h}^{(k-1)}\mathbf{W}^{(k)}$：矩阵乘法（把上一层特征映射到当前层的 $n_k$ 个神经元）
+      - $+\mathbf{b}^{(k)}$：对每个神经元加偏置（批量时按行广播）
+
+   <!-- - $\mathbf{W}^{(k)} \in \mathbb{R}^{\,n_{k-1}\times n_k}$，$\mathbf{b}^{(k)} \in \mathbb{R}^{\,1\times n_k}$ -->
+
+2. **非线性激活（Nonlinear Activation）**  
+   $\mathbf{h}^{(k)} = \sigma\\left(\mathbf{a}^{(k)}\right)$
     
 
 ---
@@ -620,11 +634,11 @@ print(f"类型 (dtype): {arr.dtype}")    # Output: float32
 
 ### 2\. 为什么要知道激活函数的导数？
 
-**原因**：为了**反向传播 (Backpropagation)**。
+**原因**：为了**反向传播 （Backpropagation）**。
 
 -   神经网络是通过**梯度下降**来更新参数的。
     
--   根据**链式法则 (Chain Rule)**，梯度需要一层层往回传。如果激活函数不可导（或者我们不知道导数），梯度链条就会断裂，参数就无法更新。
+-   反传依赖链式法则，实际只需要激活函数“几乎处处可导/可用次梯度”，否则梯度可能难以定义或极不稳定。
     
 
 ### 3\. 常见激活函数对比
@@ -638,44 +652,46 @@ print(f"类型 (dtype): {arr.dtype}")    # Output: float32
 
 ---
 
-## 四、输出与损失 (Output & Loss)
+## 四、输出与损失（Output & Loss）
 
-### 1\. Softmax 层详解
+### 1. Softmax 层详解
 
-**Q: 前馈神经网络一定需要 Softmax 吗？** **A: 不一定。** Softmax 仅用于**多分类任务**。
+1. **是否一定需要 Softmax**
+   - 不一定。Softmax 主要用于**多分类任务（M 类选 1）**。
+   - **二分类**：通常用 **Sigmoid**。
+   - **回归任务（预测数值）**：输出层通常不加激活函数（Identity）。
 
--   **二分类**：通常用 Sigmoid。
-    
--   **回归任务 (预测数值)**：通常输出层不加激活函数 (Identity)。
-    
+2. **Softmax 的作用**
+   - 模型原始输出为 **Logits**（$h_i$），是无界实数（例如 $[-2, 5, 1]$），不具备“概率”含义。
+   - Softmax 将 logits 转换为**概率分布**，便于比较与解释。
 
-**Q: 为什么要 Softmax？(公式拆解)** 模型的原始输出 (**Logits**, hi​) 是无界的实数（如 \[−2,5,1\]），无法直观比较。Softmax 将其转化为**概率分布**。
+3. **Softmax 公式与拆解**
+$$
+p_i=\frac{e^{h_i}}{\sum_{j=1}^{M}e^{h_j}}
+$$
+   - **$e^{h_i}$（指数化）**：把实数映射到正数，并**放大差异**（大的更大）。
+   - **$\sum_{j=1}^{M} e^{h_j}$（归一化）**：保证 $\sum_{i=1}^{M}p_i=1$，形成合法概率分布。
 
-pi​\=∑j\=1M​ehj​ehi​​
+---
 
--   **ehi​ (指数化)**：将实数转为正数，且**放大差异**（大的更大）。
-    
--   **∑ (分母归一化)**：确保所有 pi​ 加起来等于 1，构成合法的概率。
-    
+### 2. 交叉熵损失（Cross-Entropy Loss）详解
 
-### 2\. 交叉熵损失 (Cross-Entropy Loss) 详解
+1. **定义**
+   - 交叉熵衡量“预测概率分布”与“真实标签分布”的差距。
 
-衡量“预测概率”与“真实标签”差距的标准尺子。
+2. **公式（单样本）**
+$$
+\mathcal{L}=-\sum_{c=1}^{M}y_c\log(p_c)
+$$
 
-**公式 (单样本)**：
+3. **符号与直观解释**
+   - **$y_c$（真实标签）**：One-hot 编码。正确类别 $y_c=1$，其余为 0  
+     → 因此公式中**只有正确类别那一项生效**。
+   - **$\log(p_c)$（对数概率）**：
+     - $p_c\in(0,1)\Rightarrow \log(p_c)<0$
+     - 前面的负号将其变为正数，符合“Loss 越小越好”
+     - 直观：$p_c\to1\Rightarrow \mathcal{L}\to0$；$p_c\to0\Rightarrow \mathcal{L}\to\infty$
 
-L\=−c\=1∑M​yc​log(pc​)
-
--   **yc​ (真实标签)**：One-hot 编码。对于正确类别，yc​\=1，其他为 0。这意味着公式中**只有正确类别那一项生效**。
-    
--   **log(pc​) (对数概率)**：
-    
-    -   因为 pc​∈(0,1)，所以 log(pc​) 是负数。
-        
-    -   **前边的负号**：将其变为正数，符合“Loss 越小越好”的定义。
-        
-    -   _直观_：如果预测正确概率 pc​→1，则 Loss →0；如果 pc​→0，则 Loss →∞（惩罚无穷大）。
-        
 
 ---
 
@@ -685,15 +701,15 @@ L\=−c\=1∑M​yc​log(pc​)
 
 为了防止过拟合，严谨的实验必须遵循 **80/10/10 原则**：
 
--   **80% 训练集 (Training Set)**：
+-   **80% 训练集 （Training Set）**：
     
     -   _用途_：**学习参数** (W,b)。就像平时做的练习题。
         
--   **10% 验证集 (Validation Set)**：
+-   **10% 验证集 （Validation Set）**：
     
     -   _用途_：**调整超参数** (Hyper-parameters)。如学习率、层数。就像**模拟考试**，用来评估复习效果，调整策略。
         
--   **10% 测试集 (Test Set)**：
+-   **10% 测试集 （Test Set）**：
     
     -   _用途_：**最终评估**。就像**高考**，一锤定音，绝对不能用来指导训练。
         
