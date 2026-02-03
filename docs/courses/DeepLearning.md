@@ -479,13 +479,13 @@ print(f"类型 (dtype): {arr.dtype}")    # Output: float32
 
 在深度学习中，随机数主要用于 **权重初始化** (Weight Initialization) 和 **数据打乱** (Shuffling)。
 
-| 函数  | 数学含义 | 典型应用场景 |
-| --- | --- | --- |
-| **`np.random.seed(42)`** | **固定种子** | **可复现性** (Reproducibility)。确保每次跑代码结果一致。 |
-| `np.random.randn(d0, d1)` | **标准正态分布** N(0,1) | 神经网络**权重初始化**。 |
-| `np.random.rand(d0, d1)` | **均匀分布** U\\[0,1) | Dropout 掩码生成、数据增强。 |
-| `np.random.shuffle(arr)` | **随机打乱** | 每个 Epoch 开始前打乱训练数据。 |
-| `np.random.randint(low, high)` | **离散均匀分布** | 随机采样索引。 |
+| 函数                           | 数学含义                | 典型应用场景                                             |
+| ------------------------------ | ----------------------- | -------------------------------------------------------- |
+| **`np.random.seed(42)`**       | **固定种子**            | **可复现性** (Reproducibility)。确保每次跑代码结果一致。 |
+| `np.random.randn(d0, d1)`      | **标准正态分布** N(0,1) | 神经网络**权重初始化**。                                 |
+| `np.random.rand(d0, d1)`       | **均匀分布** U\\[0,1)   | Dropout 掩码生成、数据增强。                             |
+| `np.random.shuffle(arr)`       | **随机打乱**            | 每个 Epoch 开始前打乱训练数据。                          |
+| `np.random.randint(low, high)` | **离散均匀分布**        | 随机采样索引。                                           |
 
 
 ```Python
@@ -502,15 +502,161 @@ print(f"类型 (dtype): {arr.dtype}")    # Output: float32
 
 # Week 03 前馈神经网络
 
-## 感知机（Perceptron）
+## 1\. 深度学习的前奏与历史
 
-## 前馈神经网络 (FFN) 的结构
+### 1.1 发展历史
 
-### 核心组件-激活函数
+深度学习是一个快速发展的领域，但其根源可以追溯到20世纪40年代的连接主义（Connectionism）。
 
-### 线行层 & Softmax层
+-   **初期 (1940s-1960s):** McCulloch 和 Pitts 建立了第一个神经元形式化模型 。Frank Rosenblatt 提出了感知机（Perceptron），并引入了权重概念 。1969年，Minsky 和 Papert 出版了《Perceptrons》一书，指出了单层感知机的局限性（无法解决异或 XOR 问题），导致神经网络研究进入“寒冬” 。
+    
+-   **复苏 (1980s):** Hopfield 网络和玻尔兹曼机（Boltzmann machine）的提出 。Rumelhart 等人发明了反向传播算法（Backpropagation），解决了多层感知机的训练问题 。
+    
+-   **爆发 (2006-2012):** Hinton 等人提出了深度信念网络（Deep Belief Nets）的快速学习算法，开启了神经网络的复兴 。2012年，AlexNet 在 ImageNet 竞赛中获胜，标志着深度学习时代的全面爆发 。
+    
+-   **图灵奖得主:** Yann LeCun, Yoshua Bengio 和 Geoffrey Hinton 因在深度学习领域的贡献获得了图灵奖 。
+    
 
-## 计算图（Computational Graph）
+### 1.2 为什么现在爆发？
+
+深度学习成功的“发射台”由三个要素组成：
+
+-   **大数据 (Big Data):** 如 ImageNet, MSCOCO 等海量数据集作为“燃料” 。
+    
+-   **硬件进步:** GPU 和 TPU 的出现提供了强大的算力 。
+    
+-   **算法优化:** 更好的训练技术，如 ReLU, Dropout, Batch Norm, ResNet, Adam 优化器等 。
+    
+
+### 1.3 适用领域
+
+-   **适用:** 高维感知任务，如图像识别、自然语言处理（NLP）、语音分析、自动驾驶等 。
+    
+-   **不适用:** 也就是受物理定律严格支配的问题（如飞机引擎数据）或数据量极小、涉及复杂人类法律逻辑的领域 。
+    
+
+---
+
+## 2\. 前馈神经网络 (Feed-forward Neural Networks, FFNs)
+
+### 2.1 演变与结构
+
+前馈神经网络是从单层感知机演变而来的 。
+
+-   **多层结构:** 包含输入层（Input Layer）、隐藏层（Hidden Layers）和输出层（Output Layer） 。
+    
+-   **参数化:**
+    
+    -   层 k 拥有 nk​ 个神经元 。
+        
+    -   参数包括权重矩阵 Wk∈Rnk−1​×nk​ 和偏置向量 bk∈R1×nk​ 。
+        
+    -   输入层记为 h0(x)\=x 。
+        
+
+### 2.2 前向传播 (Forward Propagation)
+
+前向传播是数据从输入层通过各隐藏层最终到达输出层的过程。对于每一层 k (从 1 到 L)：
+
+1.  **线性操作:** 计算线性激活值 hk(x)\=hk−1(x)Wk+bk 。
+    
+2.  **非线性激活:** 应用激活函数 hk(x)\=σ(hk(x)) 。
+    
+3.  **输出:** 最后一层通常接 Softmax 层以输出概率分布 。
+    
+
+### 2.3 激活函数 (Activation Functions)
+
+激活函数引入了非线性，使神经网络能够学习复杂的决策边界。如果没有激活函数，多层网络仅仅等价于一个线性回归模型 。
+
+-   **Sigmoid:** σ(z)\=1+e−z1​。输出范围 (0, 1)，但在两端容易导致梯度消失 。
+    
+-   **Tanh:** tanh(z)\=ez+e−zez−e−z​。输出范围 (-1, 1)，通常比 Sigmoid 收敛更快 。
+    
+-   **ReLU (Rectified Linear Unit):** ReLU(z)\=max(0,z)。
+    
+    -   计算速度快，效果好 。
+        
+    -   正区间无上限，有助于缓解梯度消失问题 。
+        
+    -   在 0 处不可导（实际应用中通常设导数为0或1） 。
+        
+
+### 2.4 Softmax 层与预测
+
+-   **功能:** 将输出层的实数值（Logits, 范围 −∞ 到 +∞）转换为离散概率分布（范围 0 到 1，和为 1） 。
+    
+-   **公式:** pm​\=∑i\=1M​exp(hi​)exp(hm​)​ 。
+    
+-   **预测:** 选择概率最大的类别作为预测结果 y^​\=argmaxpm​ 。
+    
+
+---
+
+## 3\. 神经网络的训练
+
+### 3.1 损失函数 (Loss Function)
+
+训练的目标是最小化损失函数。
+
+-   **交叉熵损失 (Cross-Entropy Loss):** 分类任务中最常用的损失函数。
+    
+-   对于单个样本，损失为：l(y,y^​)\=−logpy​(x)，其中 y 是真实标签对应的索引 。
+    
+-   数据集上的总损失是所有样本损失的平均值 。
+    
+
+### 3.2 优化与 Mini-batch
+
+-   **目标:** 找到一组参数 θ\=(W,b) 使得损失 L(D;θ) 最小 。
+    
+-   **Mini-batch:** 为了提高效率，通常不使用全量数据，而是将数据分成小批次（Batch）进行前向传播和反向传播更新 。
+    
+-   **优化器:** 常用的优化器包括 SGD, Adam, RMSProp 等 。
+    
+
+### 3.3 计算图 (Computational Graph)
+
+-   PyTorch 等深度学习框架使用计算图来表示运算过程 。
+    
+-   图中的节点代表变量（如 x,W,b），边代表运算（如加法、乘法、激活函数） 。
+    
+-   计算图使得利用链式法则进行自动求导（反向传播）成为可能。
+    
+
+### 3.4 训练流程与数据集划分
+
+标准的深度学习管道（Pipeline）包括：
+
+1.  **训练集 (Training Set):** 用于学习模型参数（Weights 和 Biases） 。
+    
+2.  **验证集 (Validation Set):** 用于调整超参数（Hyper-parameters），如学习率 η、层数、每层神经元数量等 。
+    
+3.  **测试集 (Testing Set):** 用于评估最终模型的泛化能力，严禁用于训练或调参 。
+    
+
+---
+
+## 4\. 关键代码实现 (PyTorch)
+
+课件中展示了利用 PyTorch 进行前向传播的核心逻辑：
+
+```Python
+
+    # 1. 线性变换 + 激活
+    hbar_1 = torch.matmul(x, W1) + b1  # 线性操作
+    h1 = torch.relu(hbar_1)            # ReLU 激活 [cite: 2307]
+    
+    # 2. 输出层
+    h3 = torch.matmul(h2, W3) + b3     # Logits [cite: 2331]
+    p = torch.softmax(h3, dim=1)       # 概率分布 [cite: 2337]
+    
+    # 3. 预测与计算损失
+    yhat = torch.argmax(p, dim=1)      # 预测类别 [cite: 2340]
+    loss = -torch.mean(one_hot_y * torch.log(p)) # 交叉熵损失 [cite: 2786]
+```
+
+
 
 # Week 04 反向传播与优化
 
