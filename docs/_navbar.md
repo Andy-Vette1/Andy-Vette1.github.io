@@ -1,18 +1,21 @@
 <!-- markdownlint-disable MD041 -->
 
 - [Markdown](Markdown.md)
-<!-- - [Economics](Economics.md) -->
-<!-- - [Logical Thinking](LogicalThinking.md) -->
 - Programming Knowledge
-  - [Algorithm](programming/Algorithms.md)
+  - [Algorithm](programming/algorithms/algorithms.md)
   - [AI](AI/demo.md)
-  - [Design Prinsples](DesignPrinciples.md)
+  - [Design Principles](programming/software-design/design-principles.md)
   - [Linux](https://dunwu.github.io/linux-tutorial/)
-  - [Java](Java.md)
-  - [MySQL](MySQL.md)
-  - [Redis](Redis.md)
-  - [SpringFramework](SpringFramework.md)
-  - [English](English.md)
+  - [Java](programming/languages/java.md)
+  - [MySQL](programming/databases/mysql.md)
+  - [Redis](programming/databases/redis.md)
+  - [Spring Framework](programming/frameworks/spring-framework.md)
+  - [Reinforcement Learning](programming/ai/reinforcement-learning.md)
+
+- Notes
+  - [Economics](notes/humanities/economics.md)
+  - [Logical Thinking](notes/thinking/logical-thinking.md)
+  - [English](notes/languages/english.md)
 
 - Course
   - [FIT9004](courses/MathematicalFoundations.md)

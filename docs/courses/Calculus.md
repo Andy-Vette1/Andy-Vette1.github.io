@@ -1,3 +1,0 @@
-# The essence of calculus
-
-##
