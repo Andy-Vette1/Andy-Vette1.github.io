@@ -23,7 +23,8 @@
   - [FIT9136](courses/25S2/Python.md)
   - [FIT9137](courses/25S2/ComputerArchitectureAndNetworks.md)
   - [FIT5047](courses/26S1/5047.md)
-  - [FIT5215](courses/DeepLearning.md)
+  - [FIT5125](courses/26S1/5125.md)
+  - [FIT5215](courses/26S2/5215.md)
 
 - Books
   - [How to Read a Book](books/HowToReadABook.md)
