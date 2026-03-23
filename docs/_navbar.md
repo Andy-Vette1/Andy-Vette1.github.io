@@ -24,6 +24,7 @@
   - [FIT9137](courses/25S2/ComputerArchitectureAndNetworks.md)
   - [FIT5047](courses/26S1/5047.md)
   - [FIT5125](courses/26S1/5125.md)
+  - [FIT5226](courses/26S1/5226.md)
   - [FIT5215](courses/26S2/5215.md)
 
 - Books
